@@ -1,5 +1,5 @@
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
-import { OpenAIEmbeddings } from "@langchain/openai"; 
+import { OpenAIEmbeddings } from "@langchain/openai";
 // The process of splitting docs to vector/splits is called embedding.
 import { MemoryVectorStore } from "@langchain/classic/vectorstores/memory";
 import { ChatOpenAI } from "@langchain/openai";
@@ -11,7 +11,7 @@ const chat = async (filePath = "./uploads/hbs-lean-startup.pdf", query) => {
   const apiKey = process.env.OPENAI_API_KEY;
 
   // Steps:
-  // Document Loading -> Splitting -> Storage -> Retrieval -> Output
+  // Document Loading -> Splitting -> Storage -> Retrieval -> Output.
 
   // Step 1
   const loader = new PDFLoader(filePath);
@@ -20,7 +20,7 @@ const chat = async (filePath = "./uploads/hbs-lean-startup.pdf", query) => {
 
   // Step 2
   const textSplitter = new RecursiveCharacterTextSplitter({
-    chunkSize: 500, //  (in terms of number of characters)
+    chunkSize: 500, // Define the size of each split by 500 characters.
     chunkOverlap: 0,
   });
 
@@ -29,17 +29,18 @@ const chat = async (filePath = "./uploads/hbs-lean-startup.pdf", query) => {
   // Step 3
   const embeddings = new OpenAIEmbeddings(apiKey ? { apiKey } : {});
 
+  // Memory vector store is stored locally on the computer.
   const vectorStore = await MemoryVectorStore.fromDocuments(
     splitDocs,
     embeddings
   );
-  // step 4: retrieval
+  // Step 4: retrieval (For testing)
 
   // const relevantDocs = await vectorStore.similaritySearch(
   // "What is task decomposition?"
   // );
 
-  // step 5: qa w/ customize the prompt
+  // Step 5: QA w/ customize the prompt
   const model = new ChatOpenAI({
     model: "gpt-5",
     ...(apiKey && { apiKey }),
@@ -52,4 +53,25 @@ Use three sentences maximum and keep the answer as concise as possible.
 {context}
 Question: {question}
 Helpful Answer:`;
+  const prompt = PromptTemplate.fromTemplate(template);
+
+  // Use retriever to get relevant documents
+  const retriever = vectorStore.asRetriever();
+  const relevantDocs = await retriever.invoke(query);
+
+  // Format context from retrieved documents
+  const context = relevantDocs.map((doc) => doc.pageContent).join("\n\n");
+
+  // Create a simple chain using the prompt template
+  const formattedPrompt = await prompt.format({
+    context,
+    question: query,
+  });
+
+  // Get response from the model
+  const response = await model.invoke(formattedPrompt);
+
+  return { text: response.content };
 };
+
+export default chat;
