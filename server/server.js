@@ -34,6 +34,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 app.get("/chat", async (req, res) => {
   const resp = await chat(filePath, req.query.question); // Use MCP-enhanced chat
   res.send({
+    // Use rag and api to get answer.
     ragAnswer: resp.ragAnswer,
     mcpAnswer: resp.mcpAnswer,
   });
