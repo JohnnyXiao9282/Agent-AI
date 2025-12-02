@@ -24,8 +24,9 @@ const PORT = 5001;
 
 let filePath;
 
+// Upload with key = file and value = the pdf doc itself.
 app.post("/upload", upload.single("file"), async (req, res) => {
-  // Use multer to handle file upload
+  // Use multer as a middleware to handle file upload.
   filePath = req.file.path; // The path where the file is temporarily saved
   res.send(filePath + " upload successfully.");
 });
