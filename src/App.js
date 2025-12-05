@@ -29,6 +29,9 @@ const App = () => {
   const { Title } = Typography;
 
   const handleResp = (question, answer) => {
+    // IMPORTANT: We cannot call ...conversation, { question, answer }
+    // because we do not know if the conversation has been updated.
+    // Data can be corrupted.
     setConversation((prev) => [...prev, { question, answer }]);
   };
 
