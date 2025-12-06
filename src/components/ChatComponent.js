@@ -116,6 +116,7 @@ const ChatComponent = (props) => {
     if (isRecording) {
       setIsRecording(false);
       SpeechRecognition.stopListening();
+      resetTranscript();
     } else {
       setIsRecording(true);
       SpeechRecognition.startListening();
