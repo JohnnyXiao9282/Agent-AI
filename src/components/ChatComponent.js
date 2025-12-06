@@ -137,7 +137,8 @@ const ChatComponent = (props) => {
       // Send back the question and its answer as the response.
       handleResp(question, response.data);
       if (isChatModeOn) {
-        talk(response.data);
+        // AI answers using talk.
+        talk(response.data?.ragAnswer); // Use the mcp answer.
       }
     } catch (error) {
       console.error(`Error: ${error}`);
