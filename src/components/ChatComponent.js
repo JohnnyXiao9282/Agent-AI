@@ -63,10 +63,13 @@ const ChatComponent = (props) => {
   }, [listening, transcript]);
 
   const talk = (what2say) => {
+
     speech
       .speak({
         text: what2say,
-        queue: false, // Current speech will be interrupted,
+        // The queue here detects if the ai is serving more than one "client".
+        // If a new request shows up in the queue, the ai stops the serves the new client.
+        queue: false, // Current speech will be interrupted.
         listeners: {
           onstart: () => {
             console.log("Start utterance");
