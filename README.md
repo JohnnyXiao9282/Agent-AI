@@ -1,70 +1,111 @@
-# Getting Started with Create React App
+Agent AI – Full-Stack RAG & MCP-Based Document Q&A Agent
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Agent AI is a full-stack AI assistant for semantic document question-answering with both text and voice interaction. It combines a Retrieval-Augmented Generation (RAG) pipeline, web search via a Model Context Protocol (MCP) server, and a Node.js + Express backend to deliver context-aware answers grounded in your own documents and the web.
 
-## Available Scripts
+Key Features
 
-In the project directory, you can run:
+•  End-to-end Document Q&A
+◦  Upload documents and ask natural language questions.
+◦  Answers are grounded in retrieved document chunks plus live web search when needed.
+•  RAG Pipeline
+◦  Uses a Retrieval-Augmented Generation setup built on LangChain and a GPT-5-compatible LLM API.
+◦  Semantic chunking, embedding-based retrieval, and context construction for each query.
+•  Hybrid Search (RAG + Web)
+◦  Combines local document retrieval results with web search via an MCP (Model Context Protocol) server.
+◦  Integrates results from the Google Search API for fresher, broader context.
+•  Voice-Enabled Interaction
+◦  Speech input using react-speech-recognition.
+◦  Speech output using speak-tts.
+◦  Enables hands-free, conversational Q&A experience in the browser.
+•  Full-Stack Architecture
+◦  Frontend: React + TypeScript (Create React App), Ant Design UI, Axios for API calls.
+◦  Backend: Node.js + Express server for document ingestion, query handling, and orchestration of LLM, RAG, and MCP calls.
+◦  Designed for deployment on Google Cloud (GCE / Cloud Run / App Engine, etc.).
 
-### `npm start`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Tech Stack
 
-### `npm test`
+Frontend
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+•  React 18 (Create React App)
+•  TypeScript (if enabled in project configuration)
+•  Ant Design (antd)
+•  Axios
+•  react-speech-recognition (speech-to-text)
+•  speak-tts (text-to-speech)
 
-### `npm run build`
+Backend
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+•  Node.js + Express
+•  LangChain (RAG pipeline)
+•  LLM API (GPT-5-compatible endpoint)
+•  MCP server for tool calling / web search
+•  Google Search API integration
+•  File upload handling for document ingestion (e.g., PDFs, text)
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-### `npm run eject`
+High-Level Architecture
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+1. User Interaction (Browser)
+◦  User types or speaks a query.
+◦  Optionally uploads one or more documents.
+◦  Frontend calls backend REST endpoints to ingest documents and answer questions.
+2. Document Ingestion (Backend)
+◦  Backend receives files.
+◦  Files are stored (local or remote store).
+◦  Documents are chunked and embedded via LangChain.
+◦  Metadata and embeddings are stored in a vector index (e.g., in-memory or external DB, depending on configuration).
+3. Query Handling
+◦  Frontend sends query (plus optional document filters) to the backend.
+◦  Backend runs the RAG pipeline:
+▪  Retrieve top-k relevant chunks from the vector index.
+▪  Call MCP server to perform external web search using Google Search API.
+▪  Combine document context + web snippets.
+▪  Call LLM (GPT-5-compatible API) with combined context.
+4. Response
+◦  Backend returns structured answer payload:
+▪  Final answer text.
+▪  Optional citations / source snippets.
+◦  Frontend renders the answer, with optional:
+▪  Highlighted source excerpts.
+▪  Text-to-speech playback via speak-tts.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Getting Started
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+The project consists of a React frontend (Create React App) at the repo root and an Express/Node backend in the server directory.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+One-time setup
+# From the repo root
+cd /Users/yuxiao/Projects/Agent-AI
 
-## Learn More
+# Install frontend dependencies
+npm install
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+# Install backend dependencies
+cd server
+npm install
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+# Go back to repo root
+cd ..
 
-### Code Splitting
+Run the full app (frontend + backend)
+# From the repo root
+npm run dev
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+This will:
+•  Start the React dev server on port 3000 (npm start)
+•  Start the Express backend on port 5001 (npm run server → cd server && npm run start)
 
-### Analyzing the Bundle Size
+Run tests (frontend)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+Create React App’s Jest-based test runner is wired to npm test.
+# From the repo root
+npm test             # interactive watch mode
+npm test -- App.test # focus on tests matching "App.test"
 
-### Making a Progressive Web App
+Linting is handled by Create React App’s built-in ESLint configuration and surfaces during npm start and npm run build; there is no separate lint script defined.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
 
-### Advanced Configuration
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
