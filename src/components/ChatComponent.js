@@ -103,7 +103,7 @@ const ChatComponent = (props) => {
   const userStartConvo = () => {
     SpeechRecognition.startListening();
     setIsRecording(true);
-    resetTranscript();
+    resetTranscript(); // Clear previous transcript.
   };
 
   const chatModeClickHandler = () => {
