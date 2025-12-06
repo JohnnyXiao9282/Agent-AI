@@ -1,6 +1,11 @@
-import React, { useState } from "react"; // Import useState
+import React, { useState, useEffect } from "react"; // Import useState
 import axios from "axios";
-import { Input } from "antd";
+import { Button, Input } from "antd";
+import { AudioOutlined } from "@ant-design/icons";
+import SpeechRecognition, {
+  useSpeechRecognition,
+} from "react-speech-recognition";
+import Speech from "speak-tts";
 
 const { Search } = Input;
 
@@ -16,46 +21,169 @@ const ChatComponent = (props) => {
   // Define a state variable to keep track of the search value.
   const [searchValue, setSearchValue] = useState("");
 
+  const [isChatModeOn, setIsChatModeOn] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [speech, setSpeech] = useState();
+
+  // speech recognation includes some custom hooks.
+  const {
+    transcript,
+    listening,
+    resetTranscript,
+    browserSupportsSpeechRecognition,
+    isMicrophoneAvailable,
+  } = useSpeechRecognition();
+
+  useEffect(() => {
+    const speech = new Speech();
+    speech
+      .init({
+        volume: 1,
+        lang: "en-US",
+        rate: 1,
+        pitch: 1,
+        voice: "Google US English",
+        splitSentences: false,
+      })
+      .then((data) => {
+        // The "data" object contains the list of available voices and the voice synthesis params.
+        console.log("Speech is ready, voices are available", data);
+        setSpeech(speech);
+      })
+      .catch((e) => {
+        console.error("An error occured while initializing : ", e);
+      });
+  }, []);
+
+  useEffect(() => {
+    if (!listening && !!transcript) {
+      (async () => await onSearch(transcript))();
+      setIsRecording(false);
+    }
+  }, [listening, transcript]);
+
+  const talk = (what2say) => {
+    speech
+      .speak({
+        text: what2say,
+        queue: false, // Current speech will be interrupted,
+        listeners: {
+          onstart: () => {
+            console.log("Start utterance");
+          },
+          onend: () => {
+            console.log("End utterance");
+          },
+          onresume: () => {
+            console.log("Resume utterance");
+          },
+          onboundary: (event) => {
+            console.log(
+              event.name +
+                " boundary reached after " +
+                event.elapsedTime +
+                " milliseconds."
+            );
+          },
+        },
+      })
+      .then(() => {
+        // if everyting went well, start listening again
+        console.log("Success !");
+        userStartConvo();
+      })
+      .catch((e) => {
+        console.error("An error occurred :", e);
+      });
+  };
+
+  const userStartConvo = () => {
+    SpeechRecognition.startListening();
+    setIsRecording(true);
+    resetTranscript();
+  };
+
+  const chatModeClickHandler = () => {
+    setIsChatModeOn(!isChatModeOn);
+    setIsRecording(false);
+    SpeechRecognition.stopListening();
+  };
+
+  const recordingClickHandler = () => {
+    if (isRecording) {
+      setIsRecording(false);
+      SpeechRecognition.stopListening();
+    } else {
+      setIsRecording(true);
+      SpeechRecognition.startListening();
+    }
+  };
+
   const onSearch = async (question) => {
     // Clear the search input where the content appears to be taken and used to the user.
     setSearchValue("");
     setIsLoading(true);
 
     try {
-        const response = await axios.get(`${DOMAIN}/chat`, {
+      const response = await axios.get(`${DOMAIN}/chat`, {
         params: {
           question,
         },
       });
       // Send back the question and its answer as the response.
       handleResp(question, response.data);
-    } catch(error) {
-        console.error(`Error: ${error}`);
-        handleResp(question, error);
+      if (isChatModeOn) {
+        talk(response.data);
+      }
+    } catch (error) {
+      console.error(`Error: ${error}`);
+      handleResp(question, error);
     } finally {
-        // No longer waiting/loading for response.
-        setIsLoading(false);
+      // No longer waiting/loading for response.
+      setIsLoading(false);
     }
-  }
+  };
 
-
-const handleChange = (e) => {
+  const handleChange = (e) => {
     // Update searchValue state when the user types in the input box.
     setSearchValue(e.target.value);
+  };
 
-}
-
-return (
+  return (
     <div style={searchContainer}>
-      <Search
-        placeholder="input search text"
-        enterButton="Ask"
+      {!isChatModeOn && (
+        <Search
+          placeholder="input search text"
+          enterButton="Ask"
+          size="large"
+          onSearch={onSearch}
+          loading={isLoading}
+          value={searchValue} // Control the value
+          onChange={handleChange} // Update the value when changed
+        />
+      )}
+      <Button
+        type="primary"
         size="large"
-        onSearch={onSearch}
-        loading={isLoading} // When loading is true, the user cannot search; isLoading handles that for us.
-        value={searchValue} // Control the value
-        onChange={handleChange} // Update the value when changed
-      />
+        danger={isChatModeOn}
+        onClick={chatModeClickHandler}
+        style={{ marginLeft: "5px" }}
+      >
+        Chat Mode: {isChatModeOn ? "On" : "Off"}
+      </Button>
+      {isChatModeOn && (
+        <Button
+          type="primary"
+          icon={<AudioOutlined />}
+          size="large"
+          danger={isRecording}
+          onClick={recordingClickHandler}
+          style={{ marginLeft: "5px" }}
+    >
+          {isRecording ? "Recording..." : "Click to record"}
+        </Button>
+      )}
+
     </div>
   );
 };
