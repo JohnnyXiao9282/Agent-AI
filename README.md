@@ -71,3 +71,41 @@ High-Level Architecture
 ◦  Frontend renders the answer, with optional:
 ▪  Highlighted source excerpts.
 ▪  Text-to-speech playback via speak-tts.
+
+Getting Started
+
+The project consists of a React frontend (Create React App) at the repo root and an Express/Node backend in the server directory.
+
+One-time setup
+# From the repo root
+cd /Users/yuxiao/Projects/Agent-AI
+
+# Install frontend dependencies
+npm install
+
+# Install backend dependencies
+cd server
+npm install
+
+# Go back to repo root
+cd ..
+
+Run the full app (frontend + backend)
+# From the repo root
+npm run dev
+
+This will:
+•  Start the React dev server on port 3000 (npm start)
+•  Start the Express backend on port 5001 (npm run server → cd server && npm run start)
+
+Run tests (frontend)
+
+Create React App’s Jest-based test runner is wired to npm test.
+# From the repo root
+npm test             # interactive watch mode
+npm test -- App.test # focus on tests matching "App.test"
+
+Linting is handled by Create React App’s built-in ESLint configuration and surfaces during npm start and npm run build; there is no separate lint script defined.
+
+
+
